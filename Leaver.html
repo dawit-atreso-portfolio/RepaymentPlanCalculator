@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leaver Balance Calculator</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+
+</head>
+
+<body class="bg-gray-50 text-gray-800 font-[Inter] flex justify-center">
+
+<div class="w-full max-w-2xl">
+
+<!-- 🔷 TITLE -->
+<header class="text-center py-6">
+  <h1 class="text-3xl font-bold text-blue-700 font-[Manrope]">
+    Leaver Balance Calculator
+  </h1>
+</header>
+
+<main class="px-6 pb-32">
+
+<!-- 🔢 RESULT -->
+<section class="mb-10">
+  <div class="bg-white rounded-3xl p-8 text-center shadow">
+    
+    <p class="text-sm uppercase tracking-widest text-gray-500 mb-2">
+      Estimated Balance
+    </p>
+
+    <h2 id="resultAmount" class="text-5xl font-bold text-blue-600 mb-3">
+      £0.00
+    </h2>
+
+    <div id="resultText"
+      class="inline-block bg-blue-100 text-blue-800 px-4 py-1 rounded-full text-sm font-medium">
+      Based on calculation
+    </div>
+
+  </div>
+</section>
+
+<!-- 📋 FORM -->
+<section class="space-y-6">
+
+<!-- Monthly Service Charge -->
+<div>
+  <label class="text-sm text-gray-500">Monthly Service Charge (£)</label>
+  <input id="monthlyCharge" type="number" placeholder="0.00"
+    class="w-full mt-2 p-4 rounded-xl bg-gray-100 text-lg">
+</div>
+
+<!-- Outstanding Balance -->
+<div>
+  <label class="text-sm text-gray-500">Outstanding Balance (Including Current Month) (£)</label>
+  <input id="outstanding" type="number" placeholder="0.00"
+    class="w-full mt-2 p-4 rounded-xl bg-gray-100 text-lg">
+</div>
+
+<!-- Area Dropdown -->
+<div>
+  <label class="text-sm text-gray-500">Area of the Property</label>
+  <select id="area"
+    class="w-full mt-2 p-4 rounded-xl bg-gray-100 text-lg">
+
+    <option value="3.67">Salford</option>
+    <option value="2.86">Preston</option>
+    <option value="3.65">Warrington</option>
+    <option value="3.07">All Other Areas</option>
+
+  </select>
+</div>
+
+<!-- Move Out Date -->
+<div>
+  <label class="text-sm text-gray-500">Move Out Date</label>
+  <input id="moveOutDate" type="date"
+    class="w-full mt-2 p-4 rounded-xl bg-gray-100 text-lg">
+</div>
+
+<!-- BUTTON -->
+<button onclick="calculateLeaver()"
+  class="w-full bg-blue-600 text-white py-4 rounded-2xl text-lg font-bold mt-6">
+  Calculate Balance
+</button>
+
+</section>
+
+</main>
+</div>
+
+<!-- 🧠 SCRIPT -->
+<script>
+function calculateLeaver() {
+
+  let monthlyCharge = parseFloat(document.getElementById('monthlyCharge').value) || 0;
+  let outstanding = parseFloat(document.getElementById('outstanding').value) || 0;
+  let areaRate = parseFloat(document.getElementById('area').value) || 0;
+  let moveOutDate = document.getElementById('moveOutDate').value;
+
+  if (!moveOutDate) {
+    alert("Please select a move out date");
+    return;
+  }
+
+  let date = new Date(moveOutDate);
+  let dayOfMonth = date.getDate(); // number of days from start of month
+
+  let dailyChargeTotal = dayOfMonth * areaRate;
+
+  let finalBalance = (outstanding - monthlyCharge) + dailyChargeTotal;
+
+  document.getElementById("resultAmount").innerText =
+    "£" + finalBalance.toFixed(2);
+
+  document.getElementById("resultText").innerText =
+    dayOfMonth + " days charged at £" + areaRate.toFixed(2) + "/day";
+}
+</script>
+
+</body>
+</html>
