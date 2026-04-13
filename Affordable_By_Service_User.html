@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Repayment Plan Calculator</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+
+</head>
+
+<body class="bg-gray-50 text-gray-800 font-[Inter] flex justify-center">
+
+<div class="w-full max-w-2xl">
+
+<!-- 🔷 TITLE -->
+<header class="text-center py-6">
+  <h1 class="text-3xl font-bold text-blue-700 font-[Manrope]">
+    Repayment Plan Calculator
+  </h1>
+</header>
+
+<main class="px-6 pb-32">
+
+<!-- 🔢 RESULT CARD -->
+<section class="mb-10">
+  <div class="bg-white rounded-3xl p-8 text-center shadow">
+    
+    <p class="text-sm uppercase tracking-widest text-gray-500 mb-2">
+      Monthly Payment
+    </p>
+
+    <!-- USER INPUT -->
+    <input id="customPayment" type="number" placeholder="Enter amount"
+      class="text-5xl font-bold text-blue-600 mb-3 text-center w-full bg-transparent focus:outline-none">
+
+    <div id="resultText"
+      class="inline-block bg-blue-100 text-blue-800 px-4 py-3 rounded-xl text-sm font-medium mt-3 w-full">
+      Enter payment to calculate repayment duration
+    </div>
+
+  </div>
+</section>
+
+<!-- 📋 FORM -->
+<section class="space-y-6">
+
+<div>
+  <label class="text-sm text-gray-500">Monthly Service Charge (£)</label>
+  <input id="monthlyCharge" type="number" placeholder="0.00"
+    class="w-full mt-2 p-4 rounded-xl bg-gray-100 text-lg">
+</div>
+
+<div>
+  <label class="text-sm text-gray-500">Outstanding Service Charge (£)</label>
+  <input id="outstandingCharge" type="number" placeholder="0.00"
+    class="w-full mt-2 p-4 rounded-xl bg-gray-100 text-lg">
+</div>
+
+<div>
+  <label class="text-sm text-gray-500">Housing Benefit Shortfall (£)</label>
+  <input id="shortfall" type="number" placeholder="0.00"
+    class="w-full mt-2 p-4 rounded-xl bg-gray-100 text-lg">
+</div>
+
+<button onclick="calculateDuration()"
+  class="w-full bg-blue-600 text-white py-4 rounded-2xl text-lg font-bold mt-6">
+  Calculate Duration
+</button>
+
+</section>
+
+</main>
+</div>
+
+<!-- 🧠 SCRIPT -->
+<script>
+function calculateDuration() {
+
+  let payment = parseFloat(document.getElementById('customPayment').value);
+  let monthlyCharge = parseFloat(document.getElementById('monthlyCharge').value) || 0;
+  let outstanding = parseFloat(document.getElementById('outstandingCharge').value) || 0;
+  let shortfall = parseFloat(document.getElementById('shortfall').value) || 0;
+
+  let resultBox = document.getElementById("resultText");
+
+  if (!payment || payment <= monthlyCharge) {
+    resultBox.innerText = "Payment must be higher than monthly service charge.";
+    return;
+  }
+
+  let totalDebt = outstanding + shortfall;
+
+  // Net contribution to arrears
+  let netPayment = payment - monthlyCharge;
+
+  let monthsExact = totalDebt / netPayment;
+  let totalMonths = Math.ceil(monthsExact);
+
+  // Convert to years + months
+  let years = Math.floor(totalMonths / 12);
+  let remainingMonths = totalMonths % 12;
+
+  let durationText = "";
+
+  if (years > 0) {
+    durationText = years + " year(s)";
+    if (remainingMonths > 0) {
+      durationText += " and " + remainingMonths + " month(s)";
+    }
+  } else {
+    durationText = totalMonths + " month(s)";
+  }
+
+  // FULL BREAKDOWN
+  resultBox.innerHTML = `
+    <div class="text-left space-y-2">
+      <p><strong>Outstanding Balance:</strong> £${totalDebt.toFixed(2)}</p>
+      <p><strong>Monthly Payment:</strong> £${payment.toFixed(2)}</p>
+      <p><strong>Service Charge:</strong> £${monthlyCharge.toFixed(2)}</p>
+      <p><strong>Contribution to Arrears:</strong> £${netPayment.toFixed(2)} per month</p>
+      <hr class="my-2">
+      <p><strong>Repayment Duration:</strong> ${durationText}</p>
+    </div>
+  `;
+}
+</script>
+
+</body>
+</html>
