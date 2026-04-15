@@ -14,7 +14,6 @@
 
 <div class="w-full max-w-2xl">
 
-<!-- 🔷 TITLE -->
 <header class="text-center py-6">
   <h1 class="text-3xl font-bold text-blue-700 font-[Manrope]">
     Leaver Balance Calculator
@@ -23,10 +22,9 @@
 
 <main class="px-6 pb-32">
 
-<!-- 🔢 RESULT -->
+<!-- RESULT -->
 <section class="mb-10">
   <div class="bg-white rounded-3xl p-8 text-center shadow">
-    
     <p class="text-sm uppercase tracking-widest text-gray-500 mb-2">
       Estimated Balance
     </p>
@@ -39,49 +37,50 @@
       class="inline-block bg-blue-100 text-blue-800 px-4 py-1 rounded-full text-sm font-medium">
       Based on calculation
     </div>
-
   </div>
 </section>
 
-<!-- 📋 FORM -->
+<!-- FORM -->
 <section class="space-y-6">
 
-<!-- Monthly Service Charge -->
 <div>
   <label class="text-sm text-gray-500">Monthly Service Charge (£)</label>
-  <input id="monthlyCharge" type="number" placeholder="0.00"
-    class="w-full mt-2 p-4 rounded-xl bg-gray-100 text-lg">
+  <input id="monthlyCharge" type="number" class="w-full mt-2 p-4 rounded-xl bg-gray-100">
 </div>
 
-<!-- Outstanding Balance -->
 <div>
-  <label class="text-sm text-gray-500">Outstanding Balance (Including Current Month) (£)</label>
-  <input id="outstanding" type="number" placeholder="0.00"
-    class="w-full mt-2 p-4 rounded-xl bg-gray-100 text-lg">
+  <label class="text-sm text-gray-500">Outstanding Balance (£)</label>
+  <input id="outstanding" type="number" class="w-full mt-2 p-4 rounded-xl bg-gray-100">
 </div>
 
-<!-- Area Dropdown -->
 <div>
-  <label class="text-sm text-gray-500">Area of the Property</label>
-  <select id="area"
-    class="w-full mt-2 p-4 rounded-xl bg-gray-100 text-lg">
-
-    <option value="3.67">Salford</option>
-    <option value="2.86">Preston</option>
-    <option value="3.65">Warrington</option>
-    <option value="3.07">All Other Areas</option>
-
+  <label class="text-sm text-gray-500">Area</label>
+  <select id="area" onchange="toggleInvoiceField()" class="w-full mt-2 p-4 rounded-xl bg-gray-100">
+    <option value="Salford">Salford</option>
+    <option value="Preston">Preston</option>
+    <option value="Warrington">Warrington</option>
+    <option value="Other">All Other Areas</option>
   </select>
 </div>
 
-<!-- Move Out Date -->
-<div>
-  <label class="text-sm text-gray-500">Move Out Date</label>
-  <input id="moveOutDate" type="date"
-    class="w-full mt-2 p-4 rounded-xl bg-gray-100 text-lg">
+<!-- Invoice Date (Preston only) -->
+<div id="invoiceField" style="display:none;">
+  <label class="text-sm text-gray-500">Invoice Day (Preston Only)</label>
+  <input id="invoiceDay" type="number" min="1" max="31"
+    class="w-full mt-2 p-4 rounded-xl bg-gray-100"
+    placeholder="e.g. 5">
 </div>
 
-<!-- BUTTON -->
+<div>
+  <label class="text-sm text-gray-500">Move-In Date</label>
+  <input id="moveInDate" type="date" class="w-full mt-2 p-4 rounded-xl bg-gray-100">
+</div>
+
+<div>
+  <label class="text-sm text-gray-500">Move-Out Date</label>
+  <input id="moveOutDate" type="date" class="w-full mt-2 p-4 rounded-xl bg-gray-100">
+</div>
+
 <button onclick="calculateLeaver()"
   class="w-full bg-blue-600 text-white py-4 rounded-2xl text-lg font-bold mt-6">
   Calculate Balance
@@ -92,33 +91,106 @@
 </main>
 </div>
 
-<!-- 🧠 SCRIPT -->
 <script>
+
+// AREA RATES
+const rates = {
+  "Salford": 3.67,
+  "Preston": 2.86,
+  "Warrington": 3.65,
+  "Other": 3.07
+};
+
+// SHOW/HIDE INVOICE FIELD
+function toggleInvoiceField() {
+  const area = document.getElementById('area').value;
+  document.getElementById('invoiceField').style.display =
+    area === "Preston" ? "block" : "none";
+}
+
+// DATE DIFFERENCE (inclusive)
+function getDays(start, end) {
+  let diff = (end - start) / (1000 * 60 * 60 * 24);
+  return Math.max(0, Math.floor(diff) + 1);
+}
+
 function calculateLeaver() {
 
   let monthlyCharge = parseFloat(document.getElementById('monthlyCharge').value) || 0;
   let outstanding = parseFloat(document.getElementById('outstanding').value) || 0;
-  let areaRate = parseFloat(document.getElementById('area').value) || 0;
-  let moveOutDate = document.getElementById('moveOutDate').value;
+  let area = document.getElementById('area').value;
+  let moveIn = document.getElementById('moveInDate').value;
+  let moveOut = document.getElementById('moveOutDate').value;
+  let invoiceDay = parseInt(document.getElementById('invoiceDay').value);
 
-  if (!moveOutDate) {
-    alert("Please select a move out date");
+  if (!moveIn || !moveOut) {
+    alert("Please enter valid dates");
     return;
   }
 
-  let date = new Date(moveOutDate);
-  let dayOfMonth = date.getDate(); // number of days from start of month
+  let moveInDate = new Date(moveIn);
+  let moveOutDate = new Date(moveOut);
 
-  let dailyChargeTotal = dayOfMonth * areaRate;
+  if (moveOutDate < moveInDate) {
+    alert("Move-out date cannot be before move-in date");
+    return;
+  }
 
-  let finalBalance = (outstanding - monthlyCharge) + dailyChargeTotal;
+  let rate = rates[area];
+  let startDate;
+
+  // CASE A: SAME MONTH
+  if (
+    moveInDate.getMonth() === moveOutDate.getMonth() &&
+    moveInDate.getFullYear() === moveOutDate.getFullYear()
+  ) {
+    startDate = moveInDate;
+
+    let daysStayed = getDays(startDate, moveOutDate);
+    let balance = daysStayed * rate;
+
+    updateUI(balance, daysStayed, rate);
+    return;
+  }
+
+  // CASE B
+  if (area === "Preston") {
+
+    if (!invoiceDay || invoiceDay < 1 || invoiceDay > 31) {
+      alert("Enter valid invoice day for Preston");
+      return;
+    }
+
+    let tempDate = new Date(moveOutDate);
+    tempDate.setDate(invoiceDay);
+
+    if (tempDate > moveOutDate) {
+      tempDate.setMonth(tempDate.getMonth() - 1);
+    }
+
+    startDate = tempDate;
+
+  } else {
+    startDate = new Date(moveOutDate.getFullYear(), moveOutDate.getMonth(), 1);
+  }
+
+  let daysStayed = getDays(startDate, moveOutDate);
+
+  let balance = outstanding - monthlyCharge + (daysStayed * rate);
+
+  updateUI(balance, daysStayed, rate);
+}
+
+// UPDATE UI
+function updateUI(balance, days, rate) {
 
   document.getElementById("resultAmount").innerText =
-    "£" + finalBalance.toFixed(2);
+    "£" + balance.toFixed(2);
 
   document.getElementById("resultText").innerText =
-    dayOfMonth + " days charged at £" + areaRate.toFixed(2) + "/day";
+    days + " days × £" + rate.toFixed(2);
 }
+
 </script>
 
 </body>
